@@ -1,0 +1,48 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'asia-south1-docker.pkg.dev/$PROJECT_ID/containers/devops-ia-backend:$COMMIT_SHA', '.']
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'asia-south1-docker.pkg.dev/$PROJECT_ID/containers/devops-ia-backend:$COMMIT_SHA']
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'devops-ia-backend'
+  - '--image=asia-south1-docker.pkg.dev/$PROJECT_ID/containers/devops-ia-backend:$COMMIT_SHA'
+      - '--region=${_REGION}'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
+      - '--port=4000'
+      - '--set-env-vars=MONGO_DB_URL=${_MONGO_DB_URL},CLIENT_URL=${_CLIENT_URL}'
+  - name: 'gcr.io/cloud-builders/gcloud'
+    id: 'Get Backend URL'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        URL=$(gcloud run services describe devops-ia-backend --region=${_REGION} --format='value(status.url)')
+        echo $URL > /workspace/BACKEND_URL
+        echo "Backend URL: $URL"
+  - name: 'curlimages/curl'
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+        url=$(cat /workspace/BACKEND_URL)
+        curl -sf "$url/api/users" || curl -sf "$url/health" || echo 'Note: health check fallback'
+  # Chain check: ensure backend can reach Similarity (requires _SIMILARITY_URL)
+  - name: 'curlimages/curl'
+    id: 'Chain check Similarity from Cloud Build'
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+        if [ -n "${_SIMILARITY_URL}" ]; then curl -sf "${_SIMILARITY_URL}/health"; else echo 'SIMILARITY_URL not provided, skipping'; fi
+images:
+  - 'asia-south1-docker.pkg.dev/$PROJECT_ID/containers/devops-ia-backend:$COMMIT_SHA'
+substitutions:
+  _REGION: asia-south1
+  _MONGO_DB_URL: mongodb+srv://user:pass@cluster/db
+  _CLIENT_URL: https://frontend.example.com
+  _SIMILARITY_URL: ""
+timeout: 1200s

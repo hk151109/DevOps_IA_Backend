@@ -30,9 +30,19 @@ app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 // router
 app.use("/api", router);
 
+// health
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', service: 'backend', time: new Date().toISOString() });
+});
+
 // error handler
 app.use(customErrorHandler);
 
 // listen
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(PORT, " active"));
+
+// simple health endpoint
+app.get('/health', (_req, res) => {
+  res.json({ status: 'ok', time: new Date().toISOString() });
+});

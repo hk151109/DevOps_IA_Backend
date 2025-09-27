@@ -1,14 +1,14 @@
 steps:
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'asia-south1-docker.pkg.dev/$PROJECT_ID/containers/devops-ia-backend:$COMMIT_SHA', '.']
+    args: ['build', '-t', 'asia-south1-docker.pkg.dev/$PROJECT_ID/containers/devops-ia-backend:$BUILD_ID', '.']
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'asia-south1-docker.pkg.dev/$PROJECT_ID/containers/devops-ia-backend:$COMMIT_SHA']
+    args: ['push', 'asia-south1-docker.pkg.dev/$PROJECT_ID/containers/devops-ia-backend:$BUILD_ID']
   - name: 'gcr.io/cloud-builders/gcloud'
     args:
       - 'run'
       - 'deploy'
       - 'devops-ia-backend'
-  - '--image=asia-south1-docker.pkg.dev/$PROJECT_ID/containers/devops-ia-backend:$COMMIT_SHA'
+      - '--image=asia-south1-docker.pkg.dev/$PROJECT_ID/containers/devops-ia-backend:$BUILD_ID'
       - '--region=${_REGION}'
       - '--platform=managed'
       - '--allow-unauthenticated'
@@ -20,16 +20,16 @@ steps:
     args:
       - '-c'
       - |
-        URL=$(gcloud run services describe devops-ia-backend --region=${_REGION} --format='value(status.url)')
-        echo $URL > /workspace/BACKEND_URL
-        echo "Backend URL: $URL"
+        BACKEND_URL_VALUE=$$(gcloud run services describe devops-ia-backend --region=${_REGION} --format='value(status.url)')
+        echo $$BACKEND_URL_VALUE > /workspace/BACKEND_URL
+        echo "Backend URL: $$BACKEND_URL_VALUE"
   - name: 'curlimages/curl'
     entrypoint: 'sh'
     args:
       - '-c'
       - |
-        url=$(cat /workspace/BACKEND_URL)
-        curl -sf "$url/api/users" || curl -sf "$url/health" || echo 'Note: health check fallback'
+        backend_url=$$(cat /workspace/BACKEND_URL)
+        curl -sf "$$backend_url/api/users" || curl -sf "$$backend_url/health" || echo 'Note: health check fallback'
   # Chain check: ensure backend can reach Similarity (requires _SIMILARITY_URL)
   - name: 'curlimages/curl'
     id: 'Chain check Similarity from Cloud Build'
@@ -39,7 +39,7 @@ steps:
       - |
         if [ -n "${_SIMILARITY_URL}" ]; then curl -sf "${_SIMILARITY_URL}/health"; else echo 'SIMILARITY_URL not provided, skipping'; fi
 images:
-  - 'asia-south1-docker.pkg.dev/$PROJECT_ID/containers/devops-ia-backend:$COMMIT_SHA'
+  - 'asia-south1-docker.pkg.dev/$PROJECT_ID/containers/devops-ia-backend:$BUILD_ID'
 substitutions:
   _REGION: asia-south1
   _MONGO_DB_URL: mongodb+srv://user:pass@cluster/db

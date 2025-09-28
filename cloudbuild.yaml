@@ -50,4 +50,7 @@ substitutions:
   _ACCESS_TOKEN_EXPIRE: "15m"
   _SECRET_REFRESH_TOKEN: "your-super-secret-refresh-token-key-here"
   _REFRESH_TOKEN_EXPIRE: "7d"
+
+options:
+  logging: CLOUD_LOGGING_ONLY
 timeout: 1200s

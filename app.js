@@ -18,7 +18,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(
   cors({
-    origin: process.env.CLIENT_URL,
+    origin: true, // Allow all origins for development
     credentials: true,
   })
 );
@@ -33,6 +33,23 @@ app.use("/api", router);
 // health
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', service: 'backend', time: new Date().toISOString() });
+});
+
+// database test endpoint
+app.get('/db-test', async (req, res) => {
+  try {
+    const mongoose = require('mongoose');
+    const dbState = mongoose.connection.readyState;
+    const states = ['disconnected', 'connected', 'connecting', 'disconnecting'];
+    
+    res.json({ 
+      status: 'ok', 
+      database: states[dbState] || 'unknown',
+      mongoUri: process.env.MONGO_DB_URL ? 'configured' : 'missing'
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // error handler

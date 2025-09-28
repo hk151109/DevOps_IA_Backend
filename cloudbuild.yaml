@@ -13,7 +13,7 @@ steps:
       - '--platform=managed'
       - '--allow-unauthenticated'
       - '--port=4000'
-      - '--set-env-vars=MONGO_DB_URL=${_MONGO_DB_URL},CLIENT_URL=${_CLIENT_URL}'
+      - '--set-env-vars=MONGO_DB_URL=${_MONGO_DB_URL},CLIENT_URL=${_CLIENT_URL},SECRET_ACCESS_TOKEN=${_SECRET_ACCESS_TOKEN},ACCESS_TOKEN_EXPIRE=${_ACCESS_TOKEN_EXPIRE},SECRET_REFRESH_TOKEN=${_SECRET_REFRESH_TOKEN},REFRESH_TOKEN_EXPIRE=${_REFRESH_TOKEN_EXPIRE},ML_API_BASE_URL=${_SIMILARITY_URL},BACKEND_URL=${_BACKEND_URL}'
   - name: 'gcr.io/cloud-builders/gcloud'
     id: 'Get Backend URL'
     entrypoint: 'bash'
@@ -45,4 +45,9 @@ substitutions:
   _MONGO_DB_URL: mongodb+srv://user:pass@cluster/db
   _CLIENT_URL: https://frontend.example.com
   _SIMILARITY_URL: ""
+  _BACKEND_URL: "https://devops-ia-backend-226162055882.asia-south1.run.app"
+  _SECRET_ACCESS_TOKEN: "your-super-secret-access-token-key-here"
+  _ACCESS_TOKEN_EXPIRE: "15m"
+  _SECRET_REFRESH_TOKEN: "your-super-secret-refresh-token-key-here"
+  _REFRESH_TOKEN_EXPIRE: "7d"
 timeout: 1200s

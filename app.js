@@ -28,6 +28,7 @@ const path = require("path");
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 // router
+// router prefix /api
 app.use("/api", router);
 
 // health

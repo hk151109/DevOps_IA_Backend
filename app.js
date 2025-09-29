@@ -33,7 +33,7 @@ app.use("/api", router);
 
 // health
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', service: 'backend', time: new Date().toISOString() });
+  res.json({ status: 'ok - after changes', service: 'backend', time: new Date().toISOString() });
 });
 
 // database test endpoint
